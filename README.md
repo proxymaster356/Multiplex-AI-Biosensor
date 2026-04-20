@@ -692,85 +692,123 @@ This generates `sample_device_input.csv` (900 readings × 12 channels), processe
 
 ## 9. How to Run the System
 
-### Environment setup
+### Environment Setup
+
+Install all required dependencies:
 
 ```bash
-# Activate virtual environment (already created)
-.\.venv\Scripts\Activate.ps1          # Windows PowerShell
-source .venv/bin/activate              # Linux / macOS
+pip install numpy pandas scikit-learn xgboost shap flask
+```
 
-# Dependencies
-pip install numpy pandas scikit-learn xgboost shap
+Activate virtual environment if you have one:
+
+```bash
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+
+# Linux / macOS
+source .venv/bin/activate
 ```
 
 ---
 
-### Step 1 — Generate synthetic data (once only)
+### Step 1 — Generate Synthetic Data (once only)
 
 ```bash
 python detailed_dummy_generator.py
 ```
 
-Creates:
-- `biosensor_detailed_500.csv` (165 columns, 500 rows)
-- `biosensor_ground_truth.csv`
-- `biosensor_shap.csv`
-- `biosensor_metadata.json`
+Creates the following files in `data/`:
+- `biosensor_detailed_500.csv` — 500-sample main dataset (165 columns)
+- `biosensor_ground_truth.csv` — binary ground truth labels
+- `biosensor_shap.csv` — SHAP attribution scores
+- `biosensor_metadata.json` — dataset metadata
 
-> **Skip** if these files already exist.
+> **Skip this step** if these files already exist in the `data/` folder.
 
 ---
 
-### Step 2A — Batch pipeline (10 HTML reports)
+### Step 2A — Batch Pipeline (train models + generate reports)
 
 ```bash
 python run.py
 ```
 
-Runtime: ~18 seconds. Output: `biosensor_full_results.csv` + `reports/report_BIO****.html`
+Runs the complete AI pipeline on the 500-sample dataset.
+Runtime: ~18 seconds.
 
+Outputs:
+- `data/biosensor_full_results.csv` — all predictions + risk scores
+- `reports/report_BIO****.html` — 10 standalone clinical reports
+
+CLI options:
 ```bash
-python run.py --n-reports 50    # generate 50 reports instead
+python run.py                    # default: 10 HTML reports
+python run.py --n-reports 50     # generate 50 reports instead
 ```
 
 ---
 
-### Step 2B — Live simulation (real-time µA streaming)
+### Step 2B — Live Device Simulation (real-time streaming, CLI)
 
 ```bash
-python run2.py                  # ICU patient, 3 positive domains (~40s)
-python run2.py --fast           # same but compressed delays (~20s)
-python run2.py --scenario 2     # AMR-only, carbapenem-resistant UTI
-python run2.py --scenario 3     # Biofilm-only, chronic wound
+python run2.py                   # ICU patient, 3 positive domains (~40s)
+python run2.py --fast            # same but compressed delays (~20s)
+python run2.py --scenario 2      # AMR-only, carbapenem-resistant UTI
+python run2.py --scenario 3      # Biofilm-only, chronic wound
 ```
 
-What you see live:
+What you see live in the terminal:
 ```
   LIVE ACQUISITION  [████████████░░░░░░░░░░░░░░░░░░░░] 38.3%  345/900s  BINDING
-  Ch01  blaNDM-1    0.009895▼ µA    9.938 nA    0.6%  ███████████████████░  stable
-  Ch02  mecA        0.006495▲ µA    6.421 nA   35.8%  ████████████░░░░░░░░  DETECTED
-  Ch05  icaADBC     0.005818▲ µA    5.772 nA   42.3%  ███████████░░░░░░░░░  DETECTED
-  Ch09  FadA        0.005951▲ µA    5.903 nA   41.0%  ███████████░░░░░░░░░  DETECTED
+  Ch01  blaNDM-1    0.009895 uA    9.938 nA    0.6%  ███████████████████░  stable
+  Ch02  mecA        0.006495 uA    6.421 nA   35.8%  ████████████░░░░░░░░  DETECTED
 ```
+
+Saves report to: `reports/report_REAL-PAT-001.html`
 
 ---
 
-### Step 3 — View clinical reports
+### Step 2C — Web Simulator Dashboard (interactive browser UI)
 
 ```bash
-start reports\report_BIO0004.html         # Windows — batch report
-start reports\report_REAL-PAT-001.html    # Windows — live simulation report
+python app.py
 ```
+
+Then open your browser and go to:
+```
+http://127.0.0.1:5000
+```
+
+What the dashboard provides:
+- Select a clinical scenario (ICU / UTI / Chronic Wound) and run it live
+- Watch the real-time biosensor simulation results stream in the browser
+- Navigate to any generated clinical report by patient ID
+- View all HTML reports locally via the web interface.
 
 ---
 
-### Step 4 — Advanced: connect real hardware
+### Step 3 — View Clinical Reports
+
+```bash
+# Windows — open a batch report
+start reports\report_BIO0004.html
+
+# Windows — open the live simulation report
+start reports\report_REAL-PAT-001.html
+```
+
+Or open `http://127.0.0.1:5000` in your browser (after running `app.py`) to view all reports interactively.
+
+---
+
+### Step 4 — Advanced: Connect Real Hardware (optional)
 
 ```bash
 python -m pipeline.real_device_adapter    # test with simulated device CSV
 ```
 
-Then adapt `run2.py` to call `adapter.process_file(your_real_csv)` and pipe to the AI inference steps.
+Then adapt `run2.py` or `app.py` to call `adapter.process_file(your_real_csv)` and pipe to the AI inference steps.
 
 ---
 
