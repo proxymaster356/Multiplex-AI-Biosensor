@@ -22,6 +22,8 @@
 13. [Model Performance Summary](#13-model-performance-summary)
 14. [Extending the System](#14-extending-the-system)
 15. [Dependencies](#15-dependencies)
+16. [Web Simulator Dashboard](#16-web-simulator-dashboard)
+17. [License](#17-license)
 
 ---
 
@@ -889,6 +891,29 @@ source .venv/bin/activate         # Linux / macOS
 ```
 
 No GPU required. No internet connection required at inference time.
+
+---
+
+## 16. Web Simulator Dashboard
+
+A recently added Flask-based web dashboard (`app.py` & `web_simulator.py`) provides an interactive GUI for exploring the biosensor's clinical reports:
+- Serves generated HTML clinical decision reports over a local network.
+- Features a premium, dynamic dark-mode interface (`static/style.css` & `templates/index.html`).
+- Allows clinicians to visually navigate between recent patient simulations, search by sample ID, and view real-time diagnostics securely.
+
+**To run the web dashboard:**
+```bash
+python app.py
+```
+Then navigate to `http://127.0.0.1:5000` in any web browser.
+
+---
+
+## 17. License
+
+Copyright (c) 2026. All Rights Reserved.
+
+This project and its contents are not licensed for public use, modification, distribution, or reproduction without explicit prior written permission. See the `LICENSE` file for details.
 
 ---
 
