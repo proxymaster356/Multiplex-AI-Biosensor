@@ -19,6 +19,12 @@
   <img src="assets/ai_multiplex_biosensor_pipeline.svg" alt="AI Multiplex Biosensor Pipeline Architecture" width="100%"/>
 </p>
 
+### 🔴 Live View Simulation (`sample_demo.mp4`)
+
+<p align="center">
+  <video src="https://github.com/proxymaster356/Multiplex-AI-Biosensor/raw/main/sample_demo.mp4" width="100%" controls="controls" muted="muted" autoplay="autoplay" loop="loop"></video>
+</p>
+
 > [!WARNING]
 > 🚧 **This biosensor system is currently under active development and is not yet ready for clinical or production use.**
 > Features, APIs, data formats, and model architectures are subject to change. This is a proof-of-concept prototype built for research purposes. Real-world clinical validation on lab-confirmed samples is required before any deployment.
