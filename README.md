@@ -12,16 +12,21 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Status-🚧%20Under%20Active%20Development-yellow?style=for-the-badge"/>
+</p>
+
+<p align="center">
   <img src="assets/ai_multiplex_biosensor_pipeline.svg" alt="AI Multiplex Biosensor Pipeline Architecture" width="100%"/>
 </p>
 
----
-
-> 📋 **For researchers**: Complete documentation covering the biology, electrochemistry, full AI/ML architecture, every file and dataset column, real-hardware signal processing, and step-by-step instructions to run everything from raw data to clinical report.
+> [!WARNING]
+> 🚧 **This biosensor system is currently under active development and is not yet ready for clinical or production use.**
+> Features, APIs, data formats, and model architectures are subject to change. This is a proof-of-concept prototype built for research purposes. Real-world clinical validation on lab-confirmed samples is required before any deployment.
 
 ---
 
 ## Table of Contents
+
 
 1. [What This System Does](#1-what-this-system-does)
 2. [Scientific Background](#2-scientific-background)
