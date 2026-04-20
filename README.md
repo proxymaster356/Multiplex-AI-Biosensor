@@ -21,9 +21,8 @@
 
 ### 🔴 Live View Simulation (`sample_demo.mp4`)
 
-<p align="center">
-  <video src="https://github.com/proxymaster356/Multiplex-AI-Biosensor/raw/main/sample_demo.mp4" width="100%" controls="controls" muted="muted" autoplay="autoplay" loop="loop"></video>
-</p>
+https://github.com/proxymaster356/Multiplex-AI-Biosensor/raw/main/sample_demo.mp4
+
 
 > [!WARNING]
 > 🚧 **This biosensor system is currently under active development and is not yet ready for clinical or production use.**
