@@ -1,0 +1,278 @@
+
+<h2 class="sr-only">Interactive step-by-step explanation of how the AI-enabled multiplex biosensor system works, from sample collection to clinical report</h2>
+<style>
+.stepper-wrap { padding: 1rem 0; }
+.step-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--color-border-secondary); cursor: pointer; transition: background .2s, transform .2s; border: none; padding: 0; }
+.dot.active { background: var(--color-text-info); transform: scale(1.3); }
+.step-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem 1.5rem; min-height: 320px; }
+.step-label { font-size: 11px; font-weight: 500; letter-spacing: .06em; color: var(--color-text-tertiary); text-transform: uppercase; margin: 0 0 6px; }
+.step-title { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 12px; line-height: 1.3; }
+.step-body { font-size: 14px; color: var(--color-text-secondary); line-height: 1.7; margin: 0 0 16px; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+.tag-blue { background: var(--color-background-info); color: var(--color-text-info); }
+.tag-purple { background: #EEEDFE; color: #3C3489; }
+.tag-teal { background: #E1F5EE; color: #085041; }
+.tag-coral { background: #FAECE7; color: #712B13; }
+.tag-amber { background: #FAEEDA; color: #633806; }
+.tag-green { background: #EAF3DE; color: #27500A; }
+.tag-gray { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+.viz-box { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: var(--color-text-secondary); }
+.viz-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.viz-bar-wrap { flex: 1; background: var(--color-border-tertiary); border-radius: 4px; height: 8px; overflow: hidden; }
+.viz-bar { height: 100%; border-radius: 4px; transition: width .5s; }
+.nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+.nav-btn { cursor: pointer; background: transparent; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 7px 18px; font-size: 13px; color: var(--color-text-primary); transition: background .15s; }
+.nav-btn:hover { background: var(--color-background-secondary); }
+.nav-btn:disabled { opacity: .35; cursor: default; }
+.step-counter { font-size: 12px; color: var(--color-text-tertiary); }
+</style>
+
+<div class="stepper-wrap">
+  <div class="step-dots" id="dots"></div>
+  <div class="step-card" id="card"></div>
+</div>
+
+<script>
+const steps = [
+  {
+    phase: "Stage 1 — Sample collection",
+    title: "A patient sample enters the device",
+    body: "A small volume of clinical sample — blood, urine, wound swab, or biopsy fluid — is loaded into the biosensor cartridge. The cartridge is a credit-card-sized chip containing three microfluidic channels etched onto a nanostructured gold or graphene oxide surface. Each channel is pre-loaded with specific molecular probes targeting a different category of biomarker. The sample flows through all three channels simultaneously.",
+    tags: [
+      { label: "Blood / urine / swab", cls: "tag-gray" },
+      { label: "Microfluidic cartridge", cls: "tag-teal" },
+      { label: "~5 µL sample volume", cls: "tag-gray" },
+    ],
+    viz: null,
+    vizType: "flow",
+    flowLabel: "Sample flows into 3 parallel channels at once"
+  },
+  {
+    phase: "Stage 2 — Molecular recognition",
+    title: "Probes on the sensor surface grab their targets",
+    body: "Each channel's surface is coated with highly specific molecular probes. When a matching biomarker molecule from the sample binds to its probe, it triggers a detectable change at the electrode surface. Channel 1 uses CRISPR-Cas12a probes that only activate when AMR gene sequences are present. Channel 2 uses aptamers and DNAzymes that bind to biofilm signalling molecules. Channel 3 uses antibody-based probes for the oncology-linked virulence proteins. This is the 'lock and key' step — specificity is built into the chemistry.",
+    tags: [
+      { label: "CRISPR-Cas12a (AMR)", cls: "tag-blue" },
+      { label: "Aptamers (biofilm)", cls: "tag-purple" },
+      { label: "Antibody probes (oncology)", cls: "tag-coral" },
+    ],
+    viz: null,
+    vizType: "binding",
+    bindingItems: [
+      { label: "blaNDM gene", match: true, ch: "AMR" },
+      { label: "AHL molecule", match: true, ch: "Biofilm" },
+      { label: "FadA protein", match: true, ch: "Oncology" },
+    ]
+  },
+  {
+    phase: "Stage 3 — Electrochemical transduction",
+    title: "Binding events become electrical signals",
+    body: "Once a target molecule binds to its probe, it changes the electrical properties of the electrode — either the current flowing through it (amperometric detection) or the resistance to that current (impedance detection). This is transduction: a molecular event is converted into a voltage or current reading measurable in microvolts or nanoamperes. Three simultaneous electrical signals are generated — one per channel — each carrying information about a different biomarker category. These raw signals are then sent to the onboard microcontroller.",
+    tags: [
+      { label: "Amperometric readout", cls: "tag-teal" },
+      { label: "Impedance spectroscopy", cls: "tag-teal" },
+      { label: "Simultaneous 3-channel", cls: "tag-gray" },
+    ],
+    viz: [
+      { label: "AMR signal", val: 72, cls: "tag-blue", color: "#378ADD" },
+      { label: "Biofilm signal", val: 55, cls: "tag-purple", color: "#7F77DD" },
+      { label: "Oncology signal", val: 38, cls: "tag-coral", color: "#D85A30" },
+    ],
+    vizType: "bars",
+    vizCaption: "Raw electrode current readings (relative units)"
+  },
+  {
+    phase: "Stage 4 — Signal preprocessing",
+    title: "Noise is filtered and features are extracted",
+    body: "Raw electrical signals contain noise — from temperature fluctuations, pH variation, and non-specific binding of irrelevant molecules. An onboard Kalman filter removes this noise to isolate the true signal. The clean signal is then analysed for features: peak height (how much target is present), time to threshold (how fast it reached a detectable level), and frequency response in impedance mode. These features are assembled into a numerical vector — essentially a fingerprint — for each channel. This vector is what gets fed into the AI.",
+    tags: [
+      { label: "Kalman noise filter", cls: "tag-gray" },
+      { label: "Peak amplitude", cls: "tag-amber" },
+      { label: "Time-to-threshold", cls: "tag-amber" },
+      { label: "Feature vector output", cls: "tag-green" },
+    ],
+    viz: null,
+    vizType: "filter",
+    filterCaption: "Raw signal → filtered signal → feature extraction"
+  },
+  {
+    phase: "Stage 5 — Deep learning inference",
+    title: "The AI model interprets all three channels together",
+    body: "The feature vectors from all three channels are passed simultaneously into a deep learning model running on the edge chip. A 1D convolutional neural network (CNN) first processes each channel independently to learn channel-specific patterns. A Transformer-based attention layer then fuses all three channel embeddings — this is where the AI learns cross-channel correlations, such as 'high c-di-GMP + mecA gene = persistent biofilm-embedded MRSA, much higher clinical risk than either alone.' Three task-specific classifier heads then produce independent probability scores for each domain. A final ensemble model integrates all three into a combined clinical risk score.",
+    tags: [
+      { label: "1D-CNN encoder", cls: "tag-blue" },
+      { label: "Cross-channel attention", cls: "tag-purple" },
+      { label: "AMR classifier head", cls: "tag-blue" },
+      { label: "Biofilm severity head", cls: "tag-purple" },
+      { label: "Oncology risk head", cls: "tag-coral" },
+      { label: "Ensemble risk engine", cls: "tag-amber" },
+    ],
+    viz: [
+      { label: "AMR probability", val: 88, cls: "tag-blue", color: "#378ADD" },
+      { label: "Biofilm severity", val: 65, cls: "tag-purple", color: "#7F77DD" },
+      { label: "Oncology risk", val: 42, cls: "tag-coral", color: "#D85A30" },
+      { label: "Combined risk score", val: 74, cls: "tag-amber", color: "#BA7517" },
+    ],
+    vizType: "bars",
+    vizCaption: "AI model probability outputs (0–100%)"
+  },
+  {
+    phase: "Stage 6 — Uncertainty quantification",
+    title: "The model tells you how confident it is",
+    body: "Unlike a simple binary yes/no test, this system quantifies its own uncertainty using a technique called Monte Carlo Dropout — the model runs each inference multiple times with slight random variations and measures how much its answer changes. A consistent answer = high confidence. A variable answer = low confidence, meaning the signal is ambiguous and the sample may need a follow-up lab test. This confidence score appears alongside every result in the clinical report. This step is essential for clinical trust and regulatory approval.",
+    tags: [
+      { label: "MC Dropout method", cls: "tag-gray" },
+      { label: "Confidence % per marker", cls: "tag-green" },
+      { label: "Low confidence = flag", cls: "tag-amber" },
+    ],
+    viz: [
+      { label: "AMR call (88%)", val: 88, cls: "tag-blue", color: "#378ADD" },
+      { label: "Biofilm call (65%)", val: 65, cls: "tag-purple", color: "#7F77DD" },
+      { label: "Oncology call (42%)", val: 42, cls: "tag-coral", color: "#D85A30" },
+    ],
+    vizType: "bars",
+    vizCaption: "Confidence scores — bars show certainty, not just presence"
+  },
+  {
+    phase: "Stage 7 — Explainability (SHAP)",
+    title: "The AI shows its reasoning to the clinician",
+    body: "Every AI output is accompanied by a SHAP (SHapley Additive exPlanations) breakdown. This tells the clinician exactly which biomarker signals drove each prediction and by how much. For example: 'The high oncology risk score was driven 60% by FadA detection, 30% by persistent inflammation markers, 10% by co-detection with an AHL quorum signal.' This is critical — a doctor will not act on a black-box output. SHAP converts the AI's reasoning into language a clinician can audit and trust.",
+    tags: [
+      { label: "SHAP explainability", cls: "tag-green" },
+      { label: "Per-biomarker contribution", cls: "tag-green" },
+      { label: "Clinician-readable output", cls: "tag-teal" },
+    ],
+    viz: [
+      { label: "FadA detection", val: 60, cls: "tag-coral", color: "#D85A30" },
+      { label: "Inflammation markers", val: 30, cls: "tag-amber", color: "#BA7517" },
+      { label: "AHL co-signal", val: 10, cls: "tag-teal", color: "#1D9E75" },
+    ],
+    vizType: "bars",
+    vizCaption: "SHAP contribution to oncology risk score (example)"
+  },
+  {
+    phase: "Stage 8 — Device output",
+    title: "Results are transmitted to phone, tablet, or hospital system",
+    body: "The edge chip packages the full diagnostic report and transmits it via Bluetooth Low Energy (BLE) to a companion mobile app, or via Wi-Fi directly to the hospital's Electronic Health Record (EHR) system. The report is generated in under 30 minutes from sample loading. In resource-limited settings without connectivity, the results display directly on a small screen on the device itself. This is what makes it point-of-care — no laboratory infrastructure is required.",
+    tags: [
+      { label: "BLE to mobile app", cls: "tag-blue" },
+      { label: "Wi-Fi to EHR", cls: "tag-teal" },
+      { label: "Offline display mode", cls: "tag-gray" },
+      { label: "< 30 min total", cls: "tag-green" },
+    ],
+    viz: null,
+    vizType: "none"
+  },
+  {
+    phase: "Stage 9 — Clinical report",
+    title: "The clinician receives an actionable three-panel report",
+    body: "The final output is a structured three-panel report. Panel 1 (AMR) lists detected resistance genes, predicts which antibiotics will fail, and recommends alternatives. Panel 2 (Biofilm) shows the biofilm formation stage, quorum sensing activity, and c-di-GMP level — guiding decisions about biofilm-disrupting treatment. Panel 3 (Oncology risk) flags which cancer-associated microbes are present, estimates chronic inflammation load, and triggers a referral recommendation if the risk tier is High. Each panel includes its confidence score and the SHAP breakdown.",
+    tags: [
+      { label: "AMR gene report", cls: "tag-blue" },
+      { label: "Antibiotic guidance", cls: "tag-blue" },
+      { label: "Biofilm stage I–IV", cls: "tag-purple" },
+      { label: "Oncology risk tier", cls: "tag-coral" },
+      { label: "Referral flag", cls: "tag-coral" },
+    ],
+    viz: null,
+    vizType: "none"
+  },
+  {
+    phase: "Stage 10 — Continuous learning",
+    title: "Confirmed diagnoses improve the model over time",
+    body: "When laboratory confirmations or clinical outcomes come back — for example, a culture confirming the predicted resistance profile — these are fed back into the model as new labelled training data. The model retrains periodically, becoming more accurate for the population it serves. In endemic regions with specific local resistance patterns (such as NDM-producing Klebsiella in South Asia), the model will naturally specialise to those patterns over time. This is the online learning loop, and it is what separates this system from a static diagnostic kit.",
+    tags: [
+      { label: "Lab confirmation feedback", cls: "tag-green" },
+      { label: "Periodic retraining", cls: "tag-green" },
+      { label: "Population-level adaptation", cls: "tag-teal" },
+    ],
+    viz: null,
+    vizType: "none"
+  }
+];
+
+let current = 0;
+
+function renderDots() {
+  const d = document.getElementById('dots');
+  d.innerHTML = '';
+  steps.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'dot' + (i === current ? ' active' : '');
+    b.title = steps[i].phase;
+    b.onclick = () => { current = i; render(); };
+    d.appendChild(b);
+  });
+}
+
+function renderCard() {
+  const s = steps[current];
+  let vizHtml = '';
+  if (s.vizType === 'bars' && s.viz) {
+    vizHtml = `<div class="viz-box"><div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px;">${s.vizCaption}</div>`;
+    s.viz.forEach(v => {
+      vizHtml += `<div class="viz-row"><span style="font-size:12px;min-width:140px;color:var(--color-text-secondary);">${v.label}</span><div class="viz-bar-wrap"><div class="viz-bar" style="width:${v.val}%;background:${v.color};"></div></div><span style="font-size:12px;min-width:36px;text-align:right;color:var(--color-text-secondary);">${v.val}%</span></div>`;
+    });
+    vizHtml += '</div>';
+  } else if (s.vizType === 'flow') {
+    vizHtml = `<div class="viz-box" style="text-align:center;padding:16px;">
+      <div style="display:flex;justify-content:center;gap:10px;align-items:center;flex-wrap:wrap;">
+        <span class="tag tag-gray">Patient sample</span>
+        <span style="color:var(--color-text-tertiary);font-size:14px;">&#8594;</span>
+        <span class="tag tag-blue">AMR channel</span>
+        <span class="tag tag-purple">Biofilm channel</span>
+        <span class="tag tag-coral">Oncology channel</span>
+      </div>
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:10px;">${s.flowLabel}</div>
+    </div>`;
+  } else if (s.vizType === 'binding') {
+    vizHtml = `<div class="viz-box">`;
+    s.bindingItems.forEach(b => {
+      vizHtml += `<div class="viz-row"><span style="font-size:12px;min-width:130px;">${b.label}</span><span class="tag ${b.ch==='AMR'?'tag-blue':b.ch==='Biofilm'?'tag-purple':'tag-coral'}" style="font-size:11px;">${b.ch} probe</span><span style="font-size:12px;color:#3B6D11;margin-left:8px;">&#10003; bound</span></div>`;
+    });
+    vizHtml += '</div>';
+  } else if (s.vizType === 'filter') {
+    vizHtml = `<div class="viz-box" style="font-size:12px;text-align:center;padding:16px;">
+      <div style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span class="tag tag-coral">Noisy raw signal</span>
+        <span style="color:var(--color-text-tertiary);">&#8594;</span>
+        <span class="tag tag-amber">Kalman filter</span>
+        <span style="color:var(--color-text-tertiary);">&#8594;</span>
+        <span class="tag tag-teal">Clean signal</span>
+        <span style="color:var(--color-text-tertiary);">&#8594;</span>
+        <span class="tag tag-green">Feature vector</span>
+      </div>
+      <div style="color:var(--color-text-tertiary);font-size:11px;margin-top:10px;">${s.filterCaption}</div>
+    </div>`;
+  }
+
+  let tagsHtml = '<div class="tag-row">' + s.tags.map(t => `<span class="tag ${t.cls}">${t.label}</span>`).join('') + '</div>';
+
+  document.getElementById('card').innerHTML = `
+    <p class="step-label">${s.phase}</p>
+    <p class="step-title">${s.title}</p>
+    ${vizHtml}
+    <p class="step-body">${s.body}</p>
+    ${tagsHtml}
+    <div class="nav-row">
+      <button class="nav-btn" onclick="go(-1)" ${current===0?'disabled':''}>&#8592; Previous</button>
+      <span class="step-counter">${current+1} of ${steps.length}</span>
+      <button class="nav-btn" onclick="go(1)" ${current===steps.length-1?'disabled':''}>Next &#8594;</button>
+    </div>
+  `;
+}
+
+function go(dir) {
+  current = Math.max(0, Math.min(steps.length-1, current+dir));
+  render();
+}
+
+function render() {
+  renderDots();
+  renderCard();
+}
+
+render();
+</script>

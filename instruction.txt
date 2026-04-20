@@ -1,0 +1,70 @@
+# Biohackathon Project Setup & Running Instructions
+
+This repository contains the codebase for an AI-enabled multiplex biosensor system, including the core pipeline, machine learning data processors, and web dashboard infrastructure.
+
+**Project Status**: At the moment, we have developed the sensor structure and the AI/ML diagnostic system. The sensor is in the developing stage.
+
+## 1. Prerequisites
+- Python 3.8+ 
+- Git
+
+## 2. Environment Setup
+It is locally recommended to use a virtual environment to isolate the project's dependencies.
+
+1. Clone this repository to your local machine:
+   ```bash
+   git clone <YOUR_GITHUB_REPOSITORY_URL>
+   cd <YOUR_REPOSITORY_NAME>
+   ```
+
+2. Create a virtual environment:
+   ```bash
+   # On Windows
+   python -m venv venv
+   
+   # On macOS/Linux
+   python3 -m venv venv
+   ```
+
+3. Activate the virtual environment:
+   ```bash
+   # On Windows
+   venv\Scripts\activate
+
+   # On macOS/Linux
+   source venv/bin/activate
+   ```
+
+4. Install Required Dependencies:
+   Since there is no standalone `requirements.txt` included out of the box, you can install the necessary AI and web UI libraries generally required by the scripts:
+   ```bash
+   pip install Flask pandas numpy scikit-learn xgboost joblib
+   ```
+
+## 3. How to Run the Application
+
+The project offers multiple entry points depending on what you want to achieve:
+
+### A. Main Web Dashboard (Flask)
+This spins up the main application. It serves the REST API, Server-Sent Events (SSE) live simulation bridge, and the frontend client found in the `templates/` folder.
+```bash
+python app.py
+```
+After executing this command, open your web browser and go to `http://127.0.0.1:5000`. You can test the system's ability to act upon entirely unrecorded cases by selecting "Random Patient (New Each Run)" in the dashboard.
+
+### B. Backend Pipeline Core Logic
+To run alternative backend logic or entry scripts manually, you can execute:
+```bash
+python run.py
+# OR
+python run2.py
+```
+
+## 4. Understanding the Directory Snapshot
+
+- **`pipeline/`**: Contains the core ML and analytical scripts (`signal_processor.py`, `multimodal_encoder.py`, `models.py`) that analyze biosensor signals.
+- **`data/`**: Datasets, JSON metadata, and CSV files for simulating sample reading inputs. 
+  *(Note on Datasets: Because the physical sensor hardware is currently in the development stage, real data from clinical blood samples cannot yet be acquired. Therefore, the system is presently using synthesized dummy data to power the AI/ML pipeline and dashboard. Once the real sensor is completed, real clinical blood sample data will be acquired, the models will be retrained on that authentic data, and actual real-time patient readings will be processed and displayed by the system.)*
+- **`autodocking/`**: Standalone sub-module containing logic for molecular docking workflows and PDB files.
+- **`static/ & templates/`**: The visual UI assets and HTML codebase for the user-facing web applications.
+- **`reports/` & `docs/`**: Generated analytical result templates and detailed system documentations for review.

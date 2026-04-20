@@ -1,0 +1,38 @@
+AI-Enabled Multiplex Biosensor Pipeline -- Evaluation Report
+============================================================
+
+Channel Signal Summary (train set):
+Channel   Domain  Mean_drop_pct  Max_drop_pct  Detection_rate  N_detected
+   Ch01      AMR          11.07         59.45            22.0          88
+   Ch02      AMR          12.12         58.63            24.2          97
+   Ch03      AMR          12.41         58.26            24.5          98
+   Ch04      AMR          12.58         58.87            24.8          99
+   Ch05  Biofilm          16.62         57.23            33.0         132
+   Ch06  Biofilm          16.21         65.07            28.7         115
+   Ch07  Biofilm          14.68         59.55            29.0         116
+   Ch08  Biofilm          21.19         65.46            37.5         150
+   Ch09 Oncology          14.36         58.26            30.0         120
+   Ch10 Oncology          14.55         58.13            29.0         116
+   Ch11 Oncology          15.17         58.04            29.8         119
+   Ch12 Oncology          16.84         66.48            30.2         121
+  blaNDM1       AUC=1.000  Precision=1.00  Recall=1.00  N_true=28
+  mecA          AUC=1.000  Precision=1.00  Recall=1.00  N_true=27
+  vanA          AUC=0.963  Precision=1.00  Recall=0.93  N_true=27
+  KPC           AUC=0.981  Precision=1.00  Recall=0.96  N_true=27
+  Accuracy (exact):     0.940
+  Quadratic kappa:      0.989
+  Within-1 accuracy:    1.000
+  Confusion matrix:
+      51     0     0     0     0
+       0     8     0     0     0
+       0     2     7     1     0
+       0     0     2     7     0
+       0     0     0     1    21
+  Accuracy (exact):     0.920
+  Quadratic kappa:      0.979
+  Within-1 accuracy:    1.000
+  Confusion matrix:
+      50     4     0     0
+       1     4     1     0
+       0     0     4     2
+       0     0     0    34

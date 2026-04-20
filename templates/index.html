@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Multiplex Biosensor Dashboard</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Sidebar Controls -->
+        <aside class="sidebar glass-panel">
+            <h1 class="brand-title">Multiplex AI <span class="gradient-text">Biosensor</span></h1>
+            
+            <div class="control-group">
+                <label>Clinical Scenario</label>
+                <select id="scenario-selector">
+                    <option value="0" selected>🎲 Random Patient (New Each Run)</option>
+                    <option value="1">ICU (AMR + Biofilm + Oncology)</option>
+                    <option value="2">ED (AMR Only)</option>
+                    <option value="3">Wound (Biofilm Screening)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Simulation Speed</label>
+                <select id="speed-selector">
+                    <option value="true">Fast (20s)</option>
+                    <option value="false">Real-Time (15m)</option>
+                </select>
+            </div>
+
+            <button id="btn-start" class="btn-primary">Start Live Acquisition</button>
+            <button id="btn-stop" class="btn-danger" style="display: none;">Stop</button>
+
+            <!-- Patient Info Box -->
+            <div id="patient-info" class="card hidden mt-4">
+                <h3>Patient Meta</h3>
+                <p id="pi-name" class="meta-data">--</p>
+                <p id="pi-demo" class="meta-data">--</p>
+                <p id="pi-note" class="meta-data highlight-note">--</p>
+                <div class="divider"></div>
+                <p id="pi-device" class="meta-data meta-small">--</p>
+            </div>
+            
+            <!-- Past Reports History -->
+            <div id="history-container" class="history-container hidden mt-4">
+                <h3>Past Reports</h3>
+                <ul id="history-list" class="history-list"></ul>
+            </div>
+            
+            <div class="log-container mt-4">
+                <h3>Terminal Events</h3>
+                <ul id="event-logs"></ul>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard -->
+        <main class="dashboard">
+            <header class="top-nav glass-panel">
+                <div class="status-indicator">
+                    <div id="connection-dot" class="dot dot-offline"></div>
+                    <span id="connection-status">Device Offline</span>
+                </div>
+                <div class="progress-container">
+                    <div id="phase-label">Ready to acquire</div>
+                    <div class="progress-bar-bg">
+                        <div id="progress-bar-fill" class="progress-bar-fill"></div>
+                    </div>
+                </div>
+                <div id="time-display">0 / 900s</div>
+            </header>
+
+            <div class="chart-section glass-panel">
+                <canvas id="liveChart"></canvas>
+            </div>
+
+            <div class="table-container glass-panel mt-4">
+                <table id="channel-table">
+                    <thead>
+                        <tr>
+                            <th>CH</th>
+                            <th>BIOMARKER</th>
+                            <th>DOMAIN</th>
+                            <th>Current (nA)</th>
+                            <th>Drop %</th>
+                            <th>Level</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="channel-tbody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- AI Pipeline Steps Panel -->
+            <div id="pipeline-panel" class="glass-panel mt-4 hidden" style="padding: 20px;">
+                <h3 style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85rem; margin-bottom: 14px;">🧠 AI Pipeline — Individual Steps</h3>
+                <div id="pipeline-steps"></div>
+            </div>
+            
+            <!-- Final Report Modal -->
+            <div id="report-modal" class="modal glass-panel hidden">
+                <h2 class="gradient-text">Ensemble Clinical Decision Report</h2>
+                <div class="modal-content">
+                    
+                    <div class="report-card domain-amr">
+                        <h3>AMR Risk</h3>
+                        <div class="score-ring"><span id="rep-amr-score">0</span>%</div>
+                        <p class="profile" id="rep-amr-profile">--</p>
+                        <ul class="stats">
+                            <li><strong>Genes:</strong> <span id="rep-amr-genes">--</span></li>
+                            <li><strong>Failed:</strong> <span id="rep-amr-fail">--</span></li>
+                            <li><strong>Alternative:</strong> <span id="rep-amr-alt">--</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="report-card domain-biofilm">
+                        <h3>Biofilm Profile</h3>
+                        <div class="score-ring"><span id="rep-bio-score">0</span>%</div>
+                        <p class="profile" id="rep-bio-stage">--</p>
+                        <ul class="stats">
+                            <li><strong>QS Score:</strong> <span id="rep-bio-qs">--</span></li>
+                            <li><strong>c-di-GMP:</strong> <span id="rep-bio-cdi">--</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="report-card domain-oncology">
+                        <h3>Oncology Risk</h3>
+                        <div class="score-ring"><span id="rep-onc-score">0</span>%</div>
+                        <p class="profile" id="rep-onc-tier">--</p>
+                        <ul class="stats">
+                            <li><strong>Detected:</strong> <span id="rep-onc-spec">--</span></li>
+                            <li id="rep-onc-ref" class="warning-text">--</li>
+                        </ul>
+                    </div>
+
+                </div>
+                <div class="report-footer">
+                    <div class="ensemble-risk" id="ensemble-tier">
+                        <h4>Ensemble Risk: </h4>
+                        <h2><span id="rep-ens-score">0</span>% - <span id="rep-ens-tiername">Low</span></h2>
+                        <p>Active domains: <span id="rep-ens-active">0</span>/3 (+<span id="rep-ens-bonus">0</span>% co-occurrence bonus)</p>
+                    </div>
+                    <button class="btn-primary" onclick="closeModal()">Close</button>
+                    <!-- Link to detailed HTML output from run2 -->
+                    <button class="btn-secondary" id="btn-view-report">View Printable Report</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        const ctx = document.getElementById('liveChart').getContext('2d');
+        const MAX_TIME = 900;
+        
+        const COLORS = {
+            blue: 'rgba(56, 189, 248, 1)',
+            purple: 'rgba(168, 85, 247, 1)',
+            red: 'rgba(244, 63, 94, 1)'
+        };
+
+        const config = {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 0 },
+                elements: {
+                    point: { radius: 0 },
+                    line: { borderWidth: 2, tension: 0.1 }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        title: { display: true, text: 'Time (s)', color: '#9ca3af' }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        title: { display: true, text: 'Current (µA)', color: '#9ca3af' },
+                        suggestedMin: 0.003,
+                        suggestedMax: 0.011
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: '#e5e7eb', boxWidth: 12 }
+                    }
+                }
+            }
+        };
+
+        let chart = new Chart(ctx, config);
+        let eventSource = null;
+        let channelMeta = {};
+
+        function addLog(msg, isError=false, isWarning=false) {
+            const el = document.getElementById('event-logs');
+            const li = document.createElement('li');
+            li.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            if(isError) li.className = 'text-red';
+            if(isWarning) li.className = 'text-yellow';
+            el.appendChild(li);
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function resetUI() {
+            chart.data.labels = [];
+            chart.data.datasets = [];
+            chart.update();
+            document.getElementById('event-logs').innerHTML = '';
+            document.getElementById('channel-tbody').innerHTML = '';
+            document.getElementById('report-modal').classList.add('hidden');
+            document.getElementById('patient-info').classList.add('hidden');
+            document.getElementById('pipeline-panel').classList.add('hidden');
+            document.getElementById('pipeline-steps').innerHTML = '';
+            updateProgress(0, 'Initialize');
+        }
+
+        function updateProgress(t, phaseLabel) {
+            const pct = Math.min((t / MAX_TIME) * 100, 100);
+            document.getElementById('progress-bar-fill').style.width = pct + '%';
+            document.getElementById('time-display').innerText = t + ' / 900s';
+            if (phaseLabel) {
+                document.getElementById('phase-label').innerText = phaseLabel;
+            }
+        }
+
+        function drawTableBar(drop_pct) {
+            const w = Math.max(0, 100 - drop_pct);
+            const color = drop_pct >= 30 ? 'bg-red' : (drop_pct > 15 ? 'bg-yellow' : 'bg-green');
+            return `<div class="bar-container"><div class="bar-fill ${color}" style="width: ${w}%"></div></div>`;
+        }
+
+        // Connect
+        document.getElementById('btn-start').addEventListener('click', () => {
+            const sid = document.getElementById('scenario-selector').value;
+            const fast = document.getElementById('speed-selector').value;
+            resetUI();
+            
+            document.getElementById('btn-start').style.display = 'none';
+            document.getElementById('btn-stop').style.display = 'inline-block';
+            document.getElementById('connection-dot').className = 'dot dot-online';
+            document.getElementById('connection-status').innerText = 'Acquiring Live Data...';
+
+            eventSource = new EventSource(`/stream?scenario=${sid}&fast=${fast}`);
+
+            eventSource.addEventListener('boot', e => {
+                const data = JSON.parse(e.data);
+                addLog('Device Booted. Scene: ' + data.scenario_name);
+                
+                // Set patient card
+                document.getElementById('patient-info').classList.remove('hidden');
+                document.getElementById('pi-name').innerText = data.scenario_name;
+                document.getElementById('pi-demo').innerText = data.patient;
+                document.getElementById('pi-note').innerText = data.note;
+                document.getElementById('pi-device').innerText = data.device;
+                
+                channelMeta = data.channels;
+                
+                // Init chart datasets
+                for (const [ch, meta] of Object.entries(channelMeta)) {
+                    chart.data.datasets.push({
+                        label: `${ch} (${meta.bm})`,
+                        data: [],
+                        borderColor: COLORS[meta.color] || COLORS.blue,
+                        backgroundColor: 'transparent'
+                    });
+                }
+                chart.update();
+
+                // Init table rows
+                const tbody = document.getElementById('channel-tbody');
+                for (const [ch, meta] of Object.entries(channelMeta)) {
+                    tbody.innerHTML += `
+                        <tr id="tr-${ch}">
+                            <td class="ch-id ${meta.color}">${ch}</td>
+                            <td>${meta.bm}</td>
+                            <td><span class="badge badge-${meta.color}">${meta.domain}</span></td>
+                            <td id="td-raw-${ch}">--</td>
+                            <td id="td-drop-${ch}">--</td>
+                            <td id="td-level-${ch}"></td>
+                            <td id="td-status-${ch}"><span class="status-badge status-stable">Stable</span></td>
+                        </tr>
+                    `;
+                }
+            });
+
+            eventSource.addEventListener('log', e => {
+                addLog(JSON.parse(e.data).message);
+            });
+
+            eventSource.addEventListener('pipeline_step', e => {
+                const data = JSON.parse(e.data);
+                const panel = document.getElementById('pipeline-panel');
+                panel.classList.remove('hidden');
+                const container = document.getElementById('pipeline-steps');
+                const stepId = `step-${data.step}`;
+                
+                if (data.status === 'running') {
+                    const el = document.createElement('div');
+                    el.id = stepId;
+                    el.style.cssText = 'display:flex; align-items:flex-start; gap:10px; padding:10px 12px; margin-bottom:6px; background:rgba(0,0,0,0.25); border-radius:8px; border-left:3px solid var(--c-amr); transition: all 0.3s;';
+                    el.innerHTML = `<span style="flex-shrink:0; animation: pulse 1s infinite; color: var(--c-amr);">⏳</span>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight:600; font-size:0.9rem;">[${data.step}/9] ${data.name}</div>
+                            <div style="font-size:0.8rem; color: var(--text-secondary); margin-top:2px;">${data.detail || ''}</div>
+                        </div>`;
+                    container.appendChild(el);
+                    container.scrollTop = container.scrollHeight;
+                    addLog(`[Step ${data.step}/9] ${data.name}...`);
+                } else if (data.status === 'done') {
+                    const el = document.getElementById(stepId);
+                    if (el) {
+                        el.style.borderLeftColor = 'var(--c-green)';
+                        el.querySelector('span').textContent = '✅';
+                        el.querySelector('span').style.animation = 'none';
+                        const resultDiv = document.createElement('div');
+                        resultDiv.style.cssText = 'font-size:0.8rem; color: var(--c-green); margin-top:4px; font-family: monospace; word-break: break-all;';
+                        resultDiv.textContent = data.result || 'Done';
+                        el.querySelector('div').appendChild(resultDiv);
+                    }
+                    addLog(`[Step ${data.step}/9] ✓ ${data.name} → ${data.result || 'Done'}`);
+                }
+            });
+
+            eventSource.addEventListener('detection', e => {
+                const data = JSON.parse(e.data);
+                addLog(`⚠ ALERT: ${data.channel} (${data.biomarker}) crossed threshold! Drop=${data.drop}%`, false, true);
+            });
+
+            eventSource.addEventListener('live_data', e => {
+                const data = JSON.parse(e.data);
+                chart.data.labels.push(data.time);
+                
+                let phase = 'Baseline';
+                if(data.time > 60 && data.time < 600) phase = 'Binding Reaction';
+                else if (data.time >= 600) phase = 'Plateau';
+                updateProgress(data.time, phase);
+
+                let i = 0;
+                for (const ch of Object.keys(channelMeta)) {
+                    const cData = data.channels[ch];
+                    const uA = cData.raw_nA / 1000;
+                    
+                    chart.data.datasets[i].data.push(uA);
+                    
+                    // Table update
+                    document.getElementById(`td-raw-${ch}`).innerText = cData.smooth_nA.toFixed(2);
+                    document.getElementById(`td-drop-${ch}`).innerText = cData.drop_pct.toFixed(1) + '%';
+                    document.getElementById(`td-level-${ch}`).innerHTML = drawTableBar(cData.drop_pct);
+                    
+                    if (cData.detected) {
+                        document.getElementById(`td-status-${ch}`).innerHTML = '<span class="status-badge status-detected">DETECTED</span>';
+                        document.getElementById(`tr-${ch}`).classList.add('row-detected');
+                    } else if (cData.drop_pct > 15) {
+                        document.getElementById(`td-status-${ch}`).innerHTML = '<span class="status-badge status-warning">Dropping</span>';
+                    }
+
+                    i++;
+                }
+                chart.update();
+            });
+
+            eventSource.addEventListener('done', e => {
+                const data = JSON.parse(e.data);
+                addLog('Analysis Complete. Generated Final Report.', false, false);
+                eventSource.close();
+                closeStream();
+                
+                // Populate report
+                document.getElementById('rep-amr-score').innerText = data.amr.score.toFixed(1);
+                document.getElementById('rep-amr-profile').innerText = data.amr.profile;
+                document.getElementById('rep-amr-genes').innerText = data.amr.genes;
+                document.getElementById('rep-amr-fail').innerText = data.amr.failed_drugs;
+                document.getElementById('rep-amr-alt').innerText = data.amr.recommended;
+
+                document.getElementById('rep-bio-score').innerText = data.biofilm.score.toFixed(1);
+                document.getElementById('rep-bio-stage').innerText = data.biofilm.stage;
+                document.getElementById('rep-bio-qs').innerText = data.biofilm.qs_score.toFixed(1);
+                document.getElementById('rep-bio-cdi').innerText = data.biofilm.cdigmp_uM;
+
+                document.getElementById('rep-onc-score').innerText = data.oncology.score.toFixed(1);
+                document.getElementById('rep-onc-tier').innerText = data.oncology.tier;
+                document.getElementById('rep-onc-spec').innerText = data.oncology.species;
+                document.getElementById('rep-onc-ref').innerText = data.oncology.referral;
+
+                document.getElementById('rep-ens-score').innerText = data.ensemble.score.toFixed(1);
+                document.getElementById('rep-ens-tiername').innerText = data.ensemble.tier;
+                document.getElementById('rep-ens-active').innerText = data.ensemble.active;
+                document.getElementById('rep-ens-bonus').innerText = data.ensemble.bonus;
+
+                let tierColor = 'var(--c-green)';
+                if (data.ensemble.tier === 'Moderate') tierColor = 'var(--c-yellow)';
+                if (data.ensemble.tier === 'High') tierColor = '#f97316';
+                if (data.ensemble.tier === 'Critical') tierColor = 'var(--c-red)';
+
+                document.getElementById('ensemble-tier').className = 'ensemble-risk risk-' + data.ensemble.tier.toLowerCase();
+
+                document.getElementById('btn-view-report').onclick = () => window.open(`/reports/${data.patient_id}`, '_blank');
+
+                // Append historical report to side panel
+                document.getElementById('history-container').classList.remove('hidden');
+                const histList = document.getElementById('history-list');
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.onclick = () => window.open(`/reports/${data.patient_id}`, '_blank');
+                li.innerHTML = `
+                    <span>${data.patient_id}</span>
+                    <span class="history-badge" style="color: ${tierColor}; border: 1px solid ${tierColor};">${data.ensemble.tier}</span>
+                `;
+                histList.prepend(li);
+
+                document.getElementById('report-modal').classList.remove('hidden');
+                updateProgress(900, 'Done');
+            });
+
+            eventSource.onerror = () => {
+                addLog("Lost connection to device stream.", true);
+                eventSource.close();
+                closeStream();
+            };
+        });
+
+        document.getElementById('btn-stop').addEventListener('click', () => {
+            if(eventSource) eventSource.close();
+            closeStream();
+            addLog("Acquisition Aborted.");
+        });
+
+        function closeStream() {
+            document.getElementById('btn-start').style.display = 'inline-block';
+            document.getElementById('btn-stop').style.display = 'none';
+            document.getElementById('connection-dot').className = 'dot dot-offline';
+            document.getElementById('connection-status').innerText = 'Offline';
+        }
+
+        function closeModal() {
+            document.getElementById('report-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

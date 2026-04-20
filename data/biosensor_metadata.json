@@ -1,0 +1,191 @@
+{
+  "description": "AI-Enabled Multiplex Biosensor -- Synthetic Dataset v3.0 (SVG-aligned)",
+  "version": "3.0",
+  "n_samples": 500,
+  "generated_at": "2026-04-19T12:39:55.862510",
+  "changes_from_v2": [
+    "Ch06 biomarker: AHL -> AHL_AI2 (combined quorum sensing channel)",
+    "Ch07 biomarker: bap -> bap_pel_psl (biofilm matrix genes)",
+    "AMR head: Multilabel XGBoost simulation with per-gene binary calls",
+    "Biofilm head: LSTM temporal model with temporal coherence score",
+    "Oncology head: GNN microbial network with co-occurrence bonus and network centrality",
+    "Added QS_Activity_Score (continuous 0-100)",
+    "Added AI2_Level_uM field",
+    "Added pel_psl_Active binary field",
+    "Added icaADBC_Active binary field",
+    "Ensemble risk includes co-occurrence bonus for multi-domain positives",
+    "Added snr_db feature per channel",
+    "Added AMR_Resistance_Profile label and AMR_N_Genes_Detected count"
+  ],
+  "pipeline_stages": {
+    "Stage1_Metadata": [
+      "Sample_ID",
+      "Collection_Date",
+      "Collection_Time",
+      "Patient_Age",
+      "Patient_Sex",
+      "Patient_BMI",
+      "Sample_Type",
+      "Collection_Site",
+      "Sample_Volume_uL",
+      "Cartridge_Lot",
+      "Device_ID",
+      "Ambient_Temp_C",
+      "Ambient_pH"
+    ],
+    "Stage2_GroundTruth": "biosensor_ground_truth.csv -- Ch01..Ch12 binary presence/absence",
+    "Stage3_RawSignal": "ChXX_raw_nA -- Signal-OFF log model (baseline=10 nA)",
+    "Stage4_Features": [
+      "ChXX_smooth_nA",
+      "ChXX_conc_pM",
+      "ChXX_peak_amp_nA",
+      "ChXX_drop_pct",
+      "ChXX_t2t_s",
+      "ChXX_impedance_pct",
+      "ChXX_snr_db"
+    ],
+    "Stage5_AI_Scores": {
+      "AMR_head": "Multilabel XGBoost -- AI_AMR_Score + XGB_*_call per gene",
+      "Biofilm_head": "LSTM temporal -- AI_Biofilm_Score + LSTM_Temporal_Coherence",
+      "Oncology_head": "GNN network -- AI_Oncology_Score + GNN_Network_Centrality"
+    },
+    "Stage6_Uncertainty": [
+      "MC_AMR_StdDev",
+      "MC_AMR_Conf_pct",
+      "MC_Biofilm_StdDev",
+      "MC_Biofilm_Conf_pct",
+      "MC_Oncology_StdDev",
+      "MC_Oncology_Conf_pct"
+    ],
+    "Stage7_SHAP": "biosensor_shap.csv -- per-biomarker SHAP contributions",
+    "Stage8_Device": [
+      "Transmission_Mode",
+      "Total_Time_min",
+      "Ensemble_Risk_Score",
+      "Ensemble_Risk_Tier",
+      "N_Active_Domains",
+      "Co_occurrence_Bonus"
+    ],
+    "Stage9_ClinicalReport": {
+      "AMR_Panel": [
+        "AMR_Resistance_Profile",
+        "AMR_Detected_Genes",
+        "AMR_Failed_Antibiotics",
+        "AMR_Recommended_Alt",
+        "AMR_N_Genes_Detected"
+      ],
+      "Biofilm_Panel": [
+        "Biofilm_Stage",
+        "icaADBC_Active",
+        "pel_psl_Active",
+        "Quorum_Sensing_Active",
+        "QS_Activity_Score",
+        "AI2_Level_uM",
+        "c_diGMP_Level_uM"
+      ],
+      "Oncology_Panel": [
+        "Oncology_Risk_Tier",
+        "Cancer_Microbes_Detected",
+        "Oncology_Species",
+        "Chronic_Inflammation_Load",
+        "Referral_Recommended"
+      ]
+    }
+  },
+  "channel_map": {
+    "Ch01": {
+      "domain": "AMR",
+      "biomarker": "blaNDM-1",
+      "gene": true,
+      "probe": "CRISPR-Cas12a",
+      "species": "Klebsiella / E. coli"
+    },
+    "Ch02": {
+      "domain": "AMR",
+      "biomarker": "mecA",
+      "gene": true,
+      "probe": "CRISPR-Cas12a",
+      "species": "S. aureus (MRSA)"
+    },
+    "Ch03": {
+      "domain": "AMR",
+      "biomarker": "vanA",
+      "gene": true,
+      "probe": "CRISPR-Cas12a",
+      "species": "Enterococcus (VRE)"
+    },
+    "Ch04": {
+      "domain": "AMR",
+      "biomarker": "KPC",
+      "gene": true,
+      "probe": "CRISPR-Cas12a",
+      "species": "Klebsiella pneumoniae"
+    },
+    "Ch05": {
+      "domain": "Biofilm",
+      "biomarker": "icaADBC",
+      "gene": true,
+      "probe": "Aptamer",
+      "species": "S. aureus / S. epidermidis"
+    },
+    "Ch06": {
+      "domain": "Biofilm",
+      "biomarker": "AHL_AI2",
+      "gene": false,
+      "probe": "DNAzyme",
+      "species": "Quorum sensing (pan-species)"
+    },
+    "Ch07": {
+      "domain": "Biofilm",
+      "biomarker": "bap_pel_psl",
+      "gene": true,
+      "probe": "Aptamer",
+      "species": "P. aeruginosa / S. aureus"
+    },
+    "Ch08": {
+      "domain": "Biofilm",
+      "biomarker": "c-diGMP",
+      "gene": false,
+      "probe": "DNAzyme",
+      "species": "Universal 2nd messenger"
+    },
+    "Ch09": {
+      "domain": "Oncology",
+      "biomarker": "FadA",
+      "gene": true,
+      "probe": "Antibody",
+      "species": "F. nucleatum (colorectal)"
+    },
+    "Ch10": {
+      "domain": "Oncology",
+      "biomarker": "CagA",
+      "gene": true,
+      "probe": "Antibody",
+      "species": "H. pylori (gastric)"
+    },
+    "Ch11": {
+      "domain": "Oncology",
+      "biomarker": "pks",
+      "gene": true,
+      "probe": "Antibody",
+      "species": "E. coli (colorectal)"
+    },
+    "Ch12": {
+      "domain": "Oncology",
+      "biomarker": "miRNA-21",
+      "gene": false,
+      "probe": "Aptamer",
+      "species": "Pan-cancer epigenetic marker"
+    }
+  },
+  "categories": {
+    "Healthy": 0.2,
+    "AMR_only": 0.12,
+    "Biofilm_only": 0.12,
+    "Oncology_only": 0.12,
+    "AMR_Biofilm": 0.12,
+    "AMR_Oncology": 0.1,
+    "Biofilm_Oncology": 0.1,
+    "Pan_positive": 0.12
+  }
+}
