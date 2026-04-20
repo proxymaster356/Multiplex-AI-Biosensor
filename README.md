@@ -1,7 +1,23 @@
-# AI-Enabled Multiplex Biosensor System
-### A Point-of-Care Diagnostic Pipeline for AMR, Biofilm & Oncology-Associated Microbial Biomarkers
+<h1 align="center">🧬 AI-Enabled Multiplex Biosensor System</h1>
 
-> **For researchers**: Complete documentation covering the biology, electrochemistry, full AI/ML architecture, every file and dataset column, real-hardware signal processing, and step-by-step instructions to run everything from raw data to clinical report.
+<p align="center">
+  <b>A Point-of-Care Diagnostic Pipeline for AMR, Biofilm & Oncology-Associated Microbial Biomarkers</b>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/AI%2FML-XGBoost%20%7C%20Random%20Forest%20%7C%20Transformer-orange?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Output-HTML%20Clinical%20Report-green?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/License-All%20Rights%20Reserved-red?style=for-the-badge"/>
+</p>
+
+<p align="center">
+  <img src="assets/ai_multiplex_biosensor_pipeline.svg" alt="AI Multiplex Biosensor Pipeline Architecture" width="100%"/>
+</p>
+
+---
+
+> 📋 **For researchers**: Complete documentation covering the biology, electrochemistry, full AI/ML architecture, every file and dataset column, real-hardware signal processing, and step-by-step instructions to run everything from raw data to clinical report.
 
 ---
 
@@ -32,10 +48,10 @@
 This project implements a **complete AI-powered point-of-care (POC) biosensor pipeline** — from raw electrochemical signal to clinical decision report — that simultaneously screens three clinical domains:
 
 | Domain | Biomarkers Detected | Clinical Output |
-|--------|--------------------|----|
-| **AMR** (Antimicrobial Resistance) | blaNDM-1, mecA, vanA, KPC | Which antibiotics will fail; recommended alternative therapy |
-| **Biofilm** | icaADBC, AHL/AI-2, bap/pel/psl, c-di-GMP | Biofilm stage (I–IV); quorum sensing activity; matrix genes |
-| **Oncology** | FadA, CagA, pks locus, miRNA-21 | Cancer-associated microbial signatures; referral flag |
+|--------|--------------------|---|
+| 🦠 **AMR** (Antimicrobial Resistance) | blaNDM-1, mecA, vanA, KPC | Which antibiotics will fail; recommended alternative therapy |
+| 🧫 **Biofilm** | icaADBC, AHL/AI-2, bap/pel/psl, c-di-GMP | Biofilm stage (I–IV); quorum sensing activity; matrix genes |
+| 🎗️ **Oncology** | FadA, CagA, pks locus, miRNA-21 | Cancer-associated microbial signatures; referral flag |
 
 **Physical input**: ~5 µL clinical sample (blood, urine, wound swab, biopsy fluid)  
 **Output**: Standalone HTML clinical decision report in **< 30 minutes**, transmitted via BLE or Wi-Fi
